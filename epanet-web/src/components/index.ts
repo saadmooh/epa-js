@@ -1,6 +1,7 @@
 export * from './Toolbar';
 export * from './NetworkCanvas';
 export * from './PropertyPanel';
+export * from './PropertyPanelEnhanced';
 export * from './SimulationPanel';
 export * from './NetworkIcons';
 export * from './AnimationControls';
