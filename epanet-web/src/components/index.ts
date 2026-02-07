@@ -7,3 +7,4 @@ export * from './NetworkIcons';
 export * from './AnimationControls';
 export * from './MiniMap';
 export * from './ElementBrowser';
+export * from './ScenarioManager';

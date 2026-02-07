@@ -9,13 +9,14 @@ import { ResultsChart } from './components/ResultsChart';
 import { AnimationControls } from './components/AnimationControls';
 import { MiniMap } from './components/MiniMap';
 import { ElementBrowser } from './components/ElementBrowser';
+import { ScenarioManager } from './components/ScenarioManager';
 import { useNetworkStore } from './store/networkStore';
 import type { ElementType } from './types';
 
 function App() {
   const [selectedTool, setSelectedTool] = useState<ElementType | 'select'>('select');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-  const [activePanel, setActivePanel] = useState<'properties' | 'simulation' | 'visualization' | 'results' | 'browser'>('properties');
+  const [activePanel, setActivePanel] = useState<'properties' | 'simulation' | 'visualization' | 'results' | 'browser' | 'scenarios'>('properties');
 
   const getElementById = useNetworkStore((state) => state.getElementById);
   const clearNetwork = useNetworkStore((state) => state.clearNetwork);
@@ -201,6 +202,16 @@ function App() {
              >
                المستعرض
              </button>
+             <button
+               onClick={() => setActivePanel('scenarios')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'scenarios'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               السيناريوهات
+             </button>
            </div>
 
            {/* المحتوى */}
@@ -226,6 +237,9 @@ function App() {
              )}
              {activePanel === 'browser' && (
                <ElementBrowser onElementSelect={handleElementSelect} />
+             )}
+             {activePanel === 'scenarios' && (
+               <ScenarioManager />
              )}
            </div>
          </div>
