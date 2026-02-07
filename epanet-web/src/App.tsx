@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toolbar } from './components/Toolbar';
 import { NetworkCanvas } from './components/NetworkCanvas';
 import { PropertyPanel } from './components/PropertyPanel';
@@ -10,6 +10,10 @@ import { AnimationControls } from './components/AnimationControls';
 import { MiniMap } from './components/MiniMap';
 import { ElementBrowser } from './components/ElementBrowser';
 import { ScenarioManager } from './components/ScenarioManager';
+import { MenuBar } from './components/ui/MenuBar';
+import { SettingsModal, Settings } from './components/ui/SettingsModal';
+import { AboutModal } from './components/ui/AboutModal';
+import { Dialog } from './components/ui/Dialog';
 import { useNetworkStore } from './store/networkStore';
 import type { ElementType } from './types';
 
@@ -17,6 +21,21 @@ function App() {
   const [selectedTool, setSelectedTool] = useState<ElementType | 'select'>('select');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [activePanel, setActivePanel] = useState<'properties' | 'simulation' | 'visualization' | 'results' | 'browser' | 'scenarios'>('properties');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showLegend, setShowLegend] = useState(true);
+  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+  const [settings, setSettings] = useState<Settings>({
+    theme: 'light',
+    language: 'en',
+    autoSave: true,
+    showGrid: true,
+    showLegend: true,
+    animationSpeed: 1,
+    defaultUnits: 'metric',
+  });
 
   const getElementById = useNetworkStore((state) => state.getElementById);
   const clearNetwork = useNetworkStore((state) => state.clearNetwork);
@@ -34,6 +53,87 @@ function App() {
   const handleElementSelect = (id: string, type: ElementType) => {
     setSelectedElementId(id);
     setActivePanel('properties');
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Ctrl+N: New
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        handleClear();
+      }
+      // Ctrl+O: Open
+      else if (e.ctrlKey && e.key === 'o') {
+        e.preventDefault();
+        handleImport();
+      }
+      // Ctrl+S: Save
+      else if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        handleExport();
+      }
+      // Ctrl+Z: Undo
+      else if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+      // Ctrl+Y: Redo
+      else if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+      // F1: Documentation
+      else if (e.key === 'F1') {
+        e.preventDefault();
+        window.open('https://www.epa.gov/water-research/epanet', '_blank');
+      }
+      // F5: Run simulation
+      else if (e.key === 'F5' && !e.shiftKey) {
+        e.preventDefault();
+        handleRunSimulation();
+      }
+      // Shift+F5: Stop simulation
+      else if (e.key === 'F5' && e.shiftKey) {
+        e.preventDefault();
+        handleStopSimulation();
+      }
+      // Escape: Close modals
+      else if (e.key === 'Escape') {
+        setShowSettings(false);
+        setShowAbout(false);
+        setShowExitDialog(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
+  const handleRunSimulation = () => {
+    setIsSimulationRunning(true);
+    // TODO: Implement actual simulation logic
+  };
+
+  const handleStopSimulation = () => {
+    setIsSimulationRunning(false);
+    // TODO: Implement actual stop logic
+  };
+
+  const handleResetSimulation = () => {
+    setIsSimulationRunning(false);
+    // TODO: Implement actual reset logic
+  };
+
+  const handleSaveSettings = (newSettings: Settings) => {
+    setSettings(newSettings);
+    setShowGrid(newSettings.showGrid);
+    setShowLegend(newSettings.showLegend);
   };
 
   const handleViewportClick = (x: number, y: number) => {
@@ -78,7 +178,39 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100" dir="rtl">
-      {/* شريط العنوان */}
+      {/* Menu Bar */}
+      <MenuBar
+        onNew={handleClear}
+        onOpen={handleImport}
+        onSave={handleExport}
+        onExport={handleExport}
+        onImport={handleImport}
+        onExit={() => setShowExitDialog(true)}
+        onUndo={undo}
+        onRedo={redo}
+        onDelete={handleClear}
+        onSelectAll={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onFitToScreen={fitView}
+        onToggleGrid={() => setShowGrid(!showGrid)}
+        onToggleLegend={() => setShowLegend(!showLegend)}
+        onToolSelect={(tool) => setSelectedTool(tool as ElementType | 'select')}
+        onRunSimulation={handleRunSimulation}
+        onStopSimulation={handleStopSimulation}
+        onResetSimulation={handleResetSimulation}
+        onSimulationOptions={() => setShowSettings(true)}
+        onDocumentation={() => window.open('https://www.epa.gov/water-research/epanet', '_blank')}
+        onAbout={() => setShowAbout(true)}
+        onKeyboardShortcuts={() => setShowAbout(true)}
+        canUndo={canUndo()}
+        canRedo={canRedo()}
+        showGrid={showGrid}
+        showLegend={showLegend}
+        isSimulationRunning={isSimulationRunning}
+      />
+
+      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center text-white font-bold">
@@ -89,45 +221,11 @@ function App() {
         
         <div className="flex items-center gap-2">
           <button
-            onClick={undo}
-            disabled={!canUndo()}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="تراجع (Ctrl+Z)"
-          >
-            ↩️ تراجع
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo()}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="إعادة (Ctrl+Y)"
-          >
-            ↪️ إعادة
-          </button>
-          <div className="w-px h-6 bg-gray-300 mx-1" />
-          <button
-            onClick={fitView}
+            onClick={() => setShowSettings(true)}
             className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            title="Settings"
           >
-            تكيف العرض
-          </button>
-          <button
-            onClick={handleImport}
-            className="px-3 py-1.5 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors"
-          >
-            استيراد INP
-          </button>
-          <button
-            onClick={handleExport}
-            className="px-3 py-1.5 text-sm bg-epanet-primary text-white hover:bg-blue-700 rounded-md transition-colors"
-          >
-            تصدير INP
-          </button>
-          <button
-            onClick={handleClear}
-            className="px-3 py-1.5 text-sm bg-red-100 text-red-600 hover:bg-red-200 rounded-md transition-colors"
-          >
-            مسح
+            ⚙️ Settings
           </button>
         </div>
       </header>
@@ -256,6 +354,33 @@ function App() {
           {selectedElement ? `المحدد: ${selectedElement.id}` : 'لا يوجد عنصر محدد'}
         </div>
       </footer>
+
+      {/* Modals */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSave={handleSaveSettings}
+        initialSettings={settings}
+      />
+
+      <AboutModal
+        isOpen={showAbout}
+        onClose={() => setShowAbout(false)}
+      />
+
+      <Dialog
+        isOpen={showExitDialog}
+        onClose={() => setShowExitDialog(false)}
+        onConfirm={() => {
+          setShowExitDialog(false);
+          handleClear();
+        }}
+        title="Exit Application"
+        message="Are you sure you want to exit? Any unsaved changes will be lost."
+        confirmText="Exit"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }
