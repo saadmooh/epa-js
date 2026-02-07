@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MenuItem, MenuItemProps } from './MenuItem';
+import { MenuItem } from './MenuItem';
+import type { MenuItemProps } from './MenuItem';
 
 export interface MenuProps {
   children: React.ReactNode;
