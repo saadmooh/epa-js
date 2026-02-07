@@ -6,13 +6,16 @@ import { SimulationPanel } from './components/SimulationPanel';
 import { VisualizationPanel } from './components/VisualizationPanel';
 import { ResultsTable } from './components/ResultsTable';
 import { ResultsChart } from './components/ResultsChart';
+import { AnimationControls } from './components/AnimationControls';
+import { MiniMap } from './components/MiniMap';
+import { ElementBrowser } from './components/ElementBrowser';
 import { useNetworkStore } from './store/networkStore';
 import type { ElementType } from './types';
 
 function App() {
   const [selectedTool, setSelectedTool] = useState<ElementType | 'select'>('select');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-  const [activePanel, setActivePanel] = useState<'properties' | 'simulation' | 'visualization' | 'results'>('properties');
+  const [activePanel, setActivePanel] = useState<'properties' | 'simulation' | 'visualization' | 'results' | 'browser'>('properties');
 
   const getElementById = useNetworkStore((state) => state.getElementById);
   const clearNetwork = useNetworkStore((state) => state.clearNetwork);
@@ -23,8 +26,18 @@ function App() {
   const canUndo = useNetworkStore((state) => state.canUndo);
   const canRedo = useNetworkStore((state) => state.canRedo);
   const importFromInp = useNetworkStore((state) => state.importFromInp);
+  const panView = useNetworkStore((state) => state.panView);
 
   const selectedElement = selectedElementId ? (getElementById(selectedElementId) ?? null) : null;
+
+  const handleElementSelect = (id: string, type: ElementType) => {
+    setSelectedElementId(id);
+    setActivePanel('properties');
+  };
+
+  const handleViewportClick = (x: number, y: number) => {
+    panView(x, y);
+  };
 
   const handleExport = () => {
     const inpContent = exportToInp();
@@ -134,65 +147,88 @@ function App() {
           />
         </div>
 
-        {/* الشريط الجانبي الأيمن - الخصائص والمحاكاة */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          {/* تبويبات التنقل */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActivePanel('properties')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activePanel === 'properties'
-                  ? 'text-epanet-primary border-b-2 border-epanet-primary'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              الخصائص
-            </button>
-            <button
-              onClick={() => setActivePanel('simulation')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activePanel === 'simulation'
-                  ? 'text-epanet-primary border-b-2 border-epanet-primary'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              المحاكاة
-            </button>
-            <button
-              onClick={() => setActivePanel('visualization')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activePanel === 'visualization'
-                  ? 'text-epanet-primary border-b-2 border-epanet-primary'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              العرض
-            </button>
-            <button
-              onClick={() => setActivePanel('results')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activePanel === 'results'
-                  ? 'text-epanet-primary border-b-2 border-epanet-primary'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              النتائج
-            </button>
-          </div>
+         {/* الشريط الجانبي الأيمن - الخصائص والمحاكاة */}
+         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+           {/* تبويبات التنقل */}
+           <div className="flex border-b border-gray-200">
+             <button
+               onClick={() => setActivePanel('properties')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'properties'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               الخصائص
+             </button>
+             <button
+               onClick={() => setActivePanel('simulation')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'simulation'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               المحاكاة
+             </button>
+             <button
+               onClick={() => setActivePanel('visualization')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'visualization'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               العرض
+             </button>
+             <button
+               onClick={() => setActivePanel('results')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'results'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               النتائج
+             </button>
+             <button
+               onClick={() => setActivePanel('browser')}
+               className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                 activePanel === 'browser'
+                   ? 'text-epanet-primary border-b-2 border-epanet-primary'
+                   : 'text-gray-600 hover:text-gray-800'
+               }`}
+             >
+               المستعرض
+             </button>
+           </div>
 
-          {/* المحتوى */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {activePanel === 'properties' && <PropertyPanel selectedElement={selectedElement} />}
-            {activePanel === 'simulation' && <SimulationPanel />}
-            {activePanel === 'visualization' && <VisualizationPanel />}
-            {activePanel === 'results' && (
-              <div className="space-y-4">
-                <ResultsChart />
-                <ResultsTable />
-              </div>
-            )}
-          </div>
-        </div>
+           {/* المحتوى */}
+           <div className="flex-1 overflow-y-auto p-4">
+             {activePanel === 'properties' && <PropertyPanel selectedElement={selectedElement} />}
+             {activePanel === 'simulation' && (
+               <div className="space-y-4">
+                 <SimulationPanel />
+                 <AnimationControls />
+               </div>
+             )}
+             {activePanel === 'visualization' && (
+               <div className="space-y-4">
+                 <VisualizationPanel />
+                 <MiniMap onViewportClick={handleViewportClick} />
+               </div>
+             )}
+             {activePanel === 'results' && (
+               <div className="space-y-4">
+                 <ResultsChart />
+                 <ResultsTable />
+               </div>
+             )}
+             {activePanel === 'browser' && (
+               <ElementBrowser onElementSelect={handleElementSelect} />
+             )}
+           </div>
+         </div>
       </div>
 
       {/* شريط الحالة */}

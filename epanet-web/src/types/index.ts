@@ -130,6 +130,8 @@ export interface VisualizationOptions {
   showFlowDirection: boolean;
   flowArrowSize: number;
   flowArrowSpacing: number;
+  flowAnimationSpeed: number;
+  flowArrowColor: string;
   
   // التلوين
   showPressureColors: boolean;
@@ -162,6 +164,14 @@ export interface VisualizationOptions {
   // خطوط تساوي الضغط
   showContours: boolean;
   contourInterval: number;
+  
+  // إعدادات التدرج اللوني
+  pressureColorScheme: 'rainbow' | 'heat' | 'cool' | 'custom';
+  velocityColorScheme: 'rainbow' | 'heat' | 'cool' | 'custom';
+  qualityColorScheme: 'rainbow' | 'heat' | 'cool' | 'custom';
+  customPressureStops: Array<{ value: number; color: string }>;
+  customVelocityStops: Array<{ value: number; color: string }>;
+  customQualityStops: Array<{ value: number; color: string }>;
 }
 
 // نتائج المحاكاة الموسعة

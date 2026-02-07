@@ -3,3 +3,6 @@ export * from './NetworkCanvas';
 export * from './PropertyPanel';
 export * from './SimulationPanel';
 export * from './NetworkIcons';
+export * from './AnimationControls';
+export * from './MiniMap';
+export * from './ElementBrowser';
