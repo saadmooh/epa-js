@@ -10,7 +10,7 @@ export interface SettingsModalProps {
   initialSettings?: Partial<Settings>;
 }
 
-export interface Settings {
+export type Settings = {
   theme: 'light' | 'dark' | 'system';
   language: 'en' | 'ar';
   autoSave: boolean;
@@ -18,7 +18,7 @@ export interface Settings {
   showLegend: boolean;
   animationSpeed: number;
   defaultUnits: 'metric' | 'imperial';
-}
+};
 
 const defaultSettings: Settings = {
   theme: 'light',
